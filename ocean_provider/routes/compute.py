@@ -75,7 +75,7 @@ def validate_compute_request(f):
     return decorated_function
 
 
-@services.route("/initializeCompute", methods=["POST"])
+@services.route("/initializeComputeWithClaim", methods=["POST"]) ##amit
 @validate(InitializeComputeRequest)
 def initializeCompute():
     """Initialize a compute service request, with possible additional access requests.
@@ -110,9 +110,12 @@ def initializeCompute():
     """
     data = get_request_data(request)
     logger.info(f"initializeCompute called. arguments = {data}")
-
+    ###import pdb;pdb.set_trace()  ###amit
     datasets = data.get("datasets")
     algorithm = data["algorithm"]
+    claim = data.get("claim")
+    if not claim:
+        claim = algorithm
     compute_env = data["compute"]["env"]
     valid_until = data["compute"]["validUntil"]
     consumer_address = data.get("consumerAddress")
@@ -160,6 +163,7 @@ def initializeCompute():
 
     for i, dataset in enumerate(datasets):
         dataset["algorithm"] = algorithm
+        
         dataset["consumerAddress"] = consumer_address
         input_item_validator = InputItemValidator(
             web3,
@@ -193,7 +197,7 @@ def initializeCompute():
                 dataset,
             )
         )
-
+    
     if algorithm.get("documentId"):
         algorithm["consumerAddress"] = consumer_address
         approve_params["algorithm"] = get_provider_fees_or_remote(
@@ -205,7 +209,12 @@ def initializeCompute():
             (index_for_provider_fees != len(datasets)),
             algorithm,
         )
-
+        
+        
+    if claim:
+        approve_params['claim'] = approve_params['algorithm']
+        
+    
     return jsonify(approve_params), 200
 
 
@@ -439,16 +448,19 @@ def computeStart():
       503:
         description: Service unavailable
     """
+    
     data = request.json
+    import pdb;pdb.set_trace()
     logger.info(f"computeStart called. arguments = {data}")
-
+    
     consumer_address = data.get("consumerAddress")
     validator = WorkflowValidator(get_web3(), consumer_address, provider_wallet, data)
-
+    
+    
     status = validator.validate()
     if not status:
         return error_response({validator.resource: validator.message}, 400, logger)
-
+    logger.debug("printing validate: %s", status)
     workflow = validator.workflow
     # workflow is ready, push it to operator
     logger.debug("Sending: %s", workflow)

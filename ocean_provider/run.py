@@ -55,6 +55,7 @@ def handle_error(error):
 
 
 def get_services_endpoints():
+    
     services_endpoints = dict(
         map(
             lambda url: (url.endpoint.replace("services.", ""), url),
@@ -77,6 +78,9 @@ def get_services_endpoints():
             )[0],
             str(value),
         )
+
+    services_endpoints['initializeComputeWithClaim'] = services_endpoints['initializeCompute'] 
+    services_endpoints['computeStartWithClaim'] = services_endpoints['computeStart']
     return services_endpoints
 
 

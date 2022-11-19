@@ -41,26 +41,44 @@ class WorkflowValidator:
     #Umesh
     def validate(self):
         """Validates for input and output contents."""
+    
         if not self.validate_input():
             return False
 
         if not self.validate_output():
             return False
+        ##amit
+        work_flow_dict = {
+                "index": 0,
+                "input": self.validated_inputs,
+                "compute": {
+                    "Instances": 1,
+                    "namespace": "ocean-compute",
+                    "maxtime": 3600,
+                },
+                "algorithm": self.validated_algo_dict,
+                "output": self.validated_output_dict,
+            }
+        if self.validated_claim_dict:
+            work_flow_dict['claim'] = self.validated_claim_dict
+        import pdb;pdb.set_trace()
+        self.workflow["stages"].append(work_flow_dict) ##amit
+        #self.workflow["stages"].append(
+            
+        #        "index": 0,
+        #        "input": self.validated_inputs,
+        #        "compute": {
+        #            "Instances": 1,
 
-        self.workflow["stages"].append(
-                {
-                    "index": 0,
-                    "input": self.validated_inputs,
-                    "compute": {
-                        "Instances": 1,
-                        "namespace": "ocean-compute",
-                        "maxtime": 3600,
-                    },
-                    "algorithm": self.validated_algo_dict,
-                    "claim": self.validated_claim_dict,
-                    "output": self.validated_output_dict,
-                }
-            )
+        #"namespace": "ocean-compute",
+        #            "maxtime": 3600,
+        #        },
+        #        "algorithm": self.validated_algo_dict,
+        #        "claim" : self.validated_algo_dict,   ###amit
+        #        "output": self.validated_output_dict,
+        #    }
+        #)
+        
 
         return True
 
@@ -80,7 +98,8 @@ class WorkflowValidator:
 
         all_data = [main_input] + additional_inputs
         algo_data = self.data["algorithm"]
-        claim_data = self.data["claim"]
+        claim_data = self.data.get("claim") ###amit
+        
 
         self.validated_inputs = []
         valid_until_list = []
@@ -145,40 +164,43 @@ class WorkflowValidator:
             if index == 0:
                 self.service_endpoint = input_item_validator.service.service_endpoint
 
-        self.validated_claim_dict = self._build_and_validate_algo(algo_data)
+        import pdb;pdb.set_trace()
+        if claim_data:
+            ###validating_on_algo_data
+            self.validated_claim_dict = self._build_and_validate_algo(algo_data)
        
-        if algo_data.get("documentId"):
-            valid_until_list.append(self.algo_valid_until)
-            provider_fee_amounts.append(self.algo_fee_amount)
+            if algo_data.get("documentId"):
+                valid_until_list.append(self.algo_valid_until)
+                provider_fee_amounts.append(self.algo_fee_amount)
 
-        self.valid_until = max(valid_until_list)
+            self.valid_until = max(valid_until_list)
 
-        provider_fee_token = get_provider_fee_token(self.web3.chain_id)
+            provider_fee_token = get_provider_fee_token(self.web3.chain_id)
 
-        required_provider_fee = get_provider_fee_amount(
-            self.valid_until,
-            self.data.get("environment"),
-            self.web3,
-            provider_fee_token,
-        )
+            required_provider_fee = get_provider_fee_amount(
+                self.valid_until,
+                self.data.get("environment"),
+                self.web3,
+                provider_fee_token,
+            )
 
-        paid_provider_fees_index = -1
-        for fee in provider_fee_amounts:
-            if required_provider_fee <= fee:
-                paid_provider_fees_index = provider_fee_amounts.index(fee)
+            paid_provider_fees_index = -1
+            for fee in provider_fee_amounts:
+                if required_provider_fee <= fee:
+                    paid_provider_fees_index = provider_fee_amounts.index(fee)
 
-        if paid_provider_fees_index == -1:
-            self.resource = "order"
-            self.message = "fees_not_paid"
-            return False
+            if paid_provider_fees_index == -1:
+                self.resource = "order"
+                self.message = "fees_not_paid"
+                return False
 
-        self.agreement_id = None
-        for index, input_item in enumerate(all_data):
-            if index == paid_provider_fees_index:
-                self.agreement_id = input_item["transferTxId"]
+            self.agreement_id = None
+            for index, input_item in enumerate(all_data):
+                if index == paid_provider_fees_index:
+                    self.agreement_id = input_item["transferTxId"]
 
-        if not self.agreement_id:
-            self.agreement_id = algo_data["transferTxId"]
+            if not self.agreement_id:
+                self.agreement_id = algo_data["transferTxId"]
 
         return True
 
