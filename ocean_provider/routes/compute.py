@@ -110,7 +110,7 @@ def initializeCompute():
     """
     data = get_request_data(request)
     logger.info(f"initializeCompute called. arguments = {data}")
-    ###import pdb;pdb.set_trace()  ###amit
+    
     datasets = data.get("datasets")
     algorithm = data["algorithm"]
     claim = data.get("claim")
@@ -450,7 +450,7 @@ def computeStart():
     """
     
     data = request.json
-    import pdb;pdb.set_trace()
+    
     logger.info(f"computeStart called. arguments = {data}")
     
     consumer_address = data.get("consumerAddress")

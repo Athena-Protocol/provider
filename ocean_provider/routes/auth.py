@@ -65,6 +65,7 @@ def create_auth_token():
     expiration = int(data.get("expiration"))
 
     pk = os.environ.get("PROVIDER_PRIVATE_KEY")
+
     token = jwt.encode({"exp": expiration, "address": address}, pk, algorithm="HS256")
     token = token.decode("utf-8") if isinstance(token, bytes) else token
 

@@ -31,6 +31,7 @@ class CustomHTTPProvider(HTTPProvider):
             self.endpoint_uri, request_data, **self.get_request_kwargs()
         )
         response = self.decode_rpc_response(raw_response)
+
         self.logger.debug(
             "Getting response HTTP. URI: %s, " "Method: %s, Response: %s",
             self.endpoint_uri,
@@ -50,6 +51,7 @@ def make_post_request(endpoint_uri: str, data: bytes, *args, **kwargs) -> bytes:
 
 
 def _get_session(*args, **kwargs) -> Session:
+    
     cache_key = generate_cache_key((args, kwargs))
     if cache_key not in _session_cache:
         # This is the main change from original Web3 `_get_session`

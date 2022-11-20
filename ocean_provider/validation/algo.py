@@ -59,9 +59,9 @@ class WorkflowValidator:
                 "algorithm": self.validated_algo_dict,
                 "output": self.validated_output_dict,
             }
-        if self.validated_claim_dict:
-            work_flow_dict['claim'] = self.validated_claim_dict
-        import pdb;pdb.set_trace()
+        if self.validated_claim_dict is False:
+            work_flow_dict['claim'] = self.data.get("claim")
+
         self.workflow["stages"].append(work_flow_dict) ##amit
         #self.workflow["stages"].append(
             
@@ -164,7 +164,7 @@ class WorkflowValidator:
             if index == 0:
                 self.service_endpoint = input_item_validator.service.service_endpoint
 
-        import pdb;pdb.set_trace()
+        
         if claim_data:
             ###validating_on_algo_data
             self.validated_claim_dict = self._build_and_validate_algo(algo_data)
